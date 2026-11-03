@@ -1,0 +1,14 @@
+# Firebase Spark — подключение существующей базы EL BEM BEAUTY
+
+**Существующий проект и данные сохраняются.** Не создавайте новый проект и не отключайте Firestore Rules ради устранения ошибок.
+
+1. Откройте Firebase Console → выберите **существующий** `el-bem-beauty` → Project settings → Your apps → Web app → SDK config. Скопируйте `apiKey`, `authDomain`, `projectId`, `appId`. `storageBucket` необязателен: Firebase Storage здесь не используется.
+2. В корне React-проекта, **рядом с package.json**, создайте `.env.local` из `.env.example`. Вставьте настройки соответствующего Web app; проверьте, что `VITE_FIREBASE_PROJECT_ID` совпадает с оригинальным project ID. Не добавляйте кавычки и пробелы после значений. `VITE_ADMIN_LOGIN_EMAIL` только подставляет email в форму и не выдаёт права.
+3. В Firebase Authentication → Sign-in method включите Email/Password. В Settings → Authorized domains добавьте ваш домен Vercel и локальный адрес, если требуется.
+4. В Firestore Database → Rules **сначала сравните** текущие правила с `firestore.rules` из архива; проверьте правила в Emulator Suite. Только после этого вручную опубликуйте их для **того же проекта**. **Это изменение затрагивает безопасность всех коллекций**, поэтому не перезаписывайте свои изменения вслепую. Не используйте `allow read, write: if true`.
+5. Администратор входит через существующий Firebase Auth email+пароль. Его аккаунт должен иметь custom claim `admin: true`. Уполномоченный разработчик может назначить роль локально через `functions/scripts/grant-admin.cjs` с безопасной Admin SDK авторизацией; понадобится `firebase-admin` и доступ к тому же Firebase project ID. Ни админ-пароль, ни service-account JSON нельзя помещать в публичные `VITE_` переменные.
+6. Установите зависимости: `npm ci`. Запустите `npm run dev`. **Каждый раз перезапускайте Vite после изменения `.env.local`.** Проверяйте ошибки сети и `Firebase Console` → Firestore → Data: записанные записи и заказы должны действительно появляться в базе.
+7. Выполните `npm run verify`, `npm run build` и реальные тесты с тестовыми аккаунтами: регистрация, вход, личный кабинет, бронирование до/свыше 210 минут, конкурирующие слоты, заказ, CRUD админа, акции, просмотр с другого устройства. Если Firestore возвращает permission-denied, диагностируйте Auth и Rules, а не заменяйте сохранение локальным storage.
+8. Загрузите исходники в **прежний** GitHub-репозиторий. В Vercel добавьте те же `VITE_FIREBASE_*` переменные в Settings → Environment Variables, укажите Vite preset, build `npm run build`, output `dist`, выполните Redeploy. `.env.local` в GitHub не загружайте. Тариф Spark и прямые Firestore-операции не требуют Cloud Functions и платного Firebase Storage.
+
+**Примечание:** уже существующие данные не были доступны для проверки; формат коллекций не изменён. Изменение Firestore Rules и назначение admin claims необходимо делать только после резервной копии/проверки в вашей среде.

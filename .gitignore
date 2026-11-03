@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.env.local
+.env.*.local
+*.adminsdk*.json
+*service-account*.json
+*serviceAccount*.json
+*.patch
+.DS_Store
+*.tsbuildinfo

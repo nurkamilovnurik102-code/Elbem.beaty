@@ -1,0 +1,118 @@
+/* EL BEM BEAUTY — slow, decorative ambient background.
+   The two GPU-transformed aura planes never handle input or cover content.
+   Foreground cards and the special-offer banner retain their own surfaces. */
+:root {
+  --elbem-page-base: #fdfbf7;
+  --elbem-rose-light: rgba(207, 128, 151, .46);
+  --elbem-champagne-light: rgba(224, 184, 122, .48);
+  --elbem-wine-light: rgba(163, 117, 145, .19);
+}
+:root[data-theme="dark"] {
+  --elbem-page-base: #251e27;
+  --elbem-rose-light: rgba(130, 67, 99, .42);
+  --elbem-champagne-light: rgba(153, 113, 75, .25);
+  --elbem-wine-light: rgba(136, 67, 107, .39);
+}
+html, body { min-height: 100%; }
+body {
+  background-color: var(--elbem-page-base);
+  transition: background-color .45s ease;
+}
+#root { min-height: 100dvh; }
+/* Keep decorative layers inside the public site: admin/login are independent. */
+.premium-public {
+  position: relative;
+  isolation: isolate;
+  background: transparent;
+  background-image: none;
+  overflow: clip;
+}
+.premium-public::before,
+.premium-public::after {
+  content: "";
+  position: fixed;
+  pointer-events: none;
+  z-index: -1;
+  width: min(82vw, 800px);
+  height: min(82vw, 800px);
+  border-radius: 50%;
+  filter: blur(110px);
+  -webkit-filter: blur(110px);
+  opacity: .42;
+  will-change: transform, opacity;
+}
+.premium-public::before {
+  top: -20vh;
+  left: -18vw;
+  background: radial-gradient(circle at 55% 50%, var(--elbem-rose-light) 0%, var(--elbem-wine-light) 45%, transparent 72%);
+  animation: elbem-aura-rose 29s ease-in-out infinite alternate;
+}
+.premium-public::after {
+  top: 28vh;
+  right: -21vw;
+  background: radial-gradient(circle at 48% 52%, var(--elbem-champagne-light) 0%, var(--elbem-rose-light) 39%, transparent 72%);
+  animation: elbem-aura-champagne 25s ease-in-out infinite alternate;
+}
+/* Let the light show through major page sections without making cards transparent. */
+.premium-public .hero,
+.premium-public .feature-band,
+.premium-public .quick,
+.premium-public .section {
+  background: transparent;
+  background-image: none;
+}
+.premium-public .feature-band {
+  border-block: 1px solid rgba(152, 88, 100, .09);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .20);
+}
+:root[data-theme="dark"] .premium-public .hero,
+:root[data-theme="dark"] .premium-public .feature-band,
+:root[data-theme="dark"] .premium-public .quick,
+:root[data-theme="dark"] .premium-public .section { background: transparent; background-image: none; }
+@keyframes elbem-aura-rose {
+  0%   { transform: translate3d(0, 0, 0) scale(1); opacity: .32; }
+  48%  { transform: translate3d(19vw, 10vh, 0) scale(1.15); opacity: .56; }
+  100% { transform: translate3d(6vw, 31vh, 0) scale(.95); opacity: .37; }
+}
+@keyframes elbem-aura-champagne {
+  0%   { transform: translate3d(0, 0, 0) scale(.95); opacity: .36; }
+  52%  { transform: translate3d(-17vw, 23vh, 0) scale(1.10); opacity: .59; }
+  100% { transform: translate3d(-4vw, -14vh, 0) scale(1.04); opacity: .30; }
+}
+@media (max-width: 600px) {
+  .premium-public::before, .premium-public::after {
+    width: 95vw;
+    height: 95vw;
+    filter: blur(72px);
+    -webkit-filter: blur(72px);
+    will-change: auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  body { transition: none; }
+  .premium-public::before, .premium-public::after {
+    animation: none;
+    transform: none;
+    opacity: .36;
+    will-change: auto;
+  }
+}
+
+/* Final beauty atmosphere: defined warm gradients (not a flat milk-white layer). */
+:root { --elbem-page-base: #f6e9e5; --elbem-rose-light:rgba(189,68,104,.71); --elbem-champagne-light:rgba(228,158,70,.64); --elbem-wine-light:rgba(112,38,81,.38); }
+:root[data-theme="dark"] { --elbem-page-base:#1b131c; --elbem-rose-light:rgba(148,56,99,.64); --elbem-champagne-light:rgba(172,96,55,.4); --elbem-wine-light:rgba(106,36,75,.55); }
+body { background-image:radial-gradient(ellipse at 5% 25%,rgba(180,86,114,.12),transparent 44%),radial-gradient(ellipse at 86% 82%,rgba(216,144,74,.12),transparent 43%); }
+.premium-public::before,.premium-public::after { opacity:.64;filter:blur(87px);-webkit-filter:blur(87px); }
+.premium-public::before {top:-9vh;left:-14vw; width:min(90vw,960px);height:min(90vw,960px);}
+.premium-public::after {right:-15vw;top:22vh;width:min(90vw,1000px);height:min(90vw,1000px);}
+:root[data-theme="dark"] body {background-image:radial-gradient(ellipse at 9% 18%,rgba(123,52,88,.28),transparent 46%),radial-gradient(ellipse at 83% 80%,rgba(152,88,54,.15),transparent 42%);}
+.premium-public .feature-band {background:linear-gradient(115deg,rgba(118,48,76,.08),rgba(223,170,130,.04),rgba(115,44,78,.08));}
+.premium-public .special-banner,.premium-public .special-offer,.premium-public .offer-banner { background:linear-gradient(125deg,#693247,#874356 52%,#ad706f)!important;color:#fff6eb; }
+@media(max-width:600px){.premium-public::before,.premium-public::after{filter:blur(70px);-webkit-filter:blur(70px);}}
+@media(prefers-reduced-motion:reduce){.premium-public::before,.premium-public::after{animation:none!important;will-change:auto;}}
+
+/* Beauty offer: strong wine/champagne surface matching both themes. */
+.premium-public .offer{background:linear-gradient(115deg,#5c243d 0%,#873b59 48%,#a76c6a 100%)!important;color:#fff6f4;box-shadow:0 25px 70px rgba(86,29,59,.20);}
+.premium-public .offer::before{background:radial-gradient(circle,rgba(255,214,155,.28),rgba(248,175,165,.12) 43%,transparent 75%);}
+:root[data-theme="dark"] .premium-public .offer{background:linear-gradient(118deg,#532039,#74334b 55%,#7c4b51)!important;}
+.premium-public .offer .offer-inner h2,.premium-public .offer .offer-inner p{color:#fff5ee;}
