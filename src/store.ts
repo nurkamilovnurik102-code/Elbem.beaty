@@ -184,7 +184,21 @@ export async function submitReview(name:string,review:string,rating:number){
     tx.set(r,{id,name:clean(name,90),text:clean(review,1800),rating,approved:false,userId:user.uid,createdAt:new Date().toISOString()});
   });
 }
-export async function checkAdmin(forceRefresh=false){const u=adminAuth?.currentUser;if(!u)return false;const token=await getIdTokenResult(u,forceRefresh);return token.claims.admin===true}
+export async function checkAdmin(forceRefresh = false) {
+  const user = adminAuth?.currentUser;
+  if (!user) return false;
+
+  const token = await getIdTokenResult(user, forceRefresh);
+  const adminEmail = (
+    import.meta.env.VITE_ADMIN_LOGIN_EMAIL ?? ""
+  ).trim().toLowerCase();
+
+  return (
+    token.claims.admin === true &&
+    Boolean(adminEmail) &&
+    user.email?.toLowerCase() === adminEmail
+  );
+}
 export async function getMyData():Promise<{bookings:Booking[];orders:Order[]}>{const user=auth?.currentUser;if(!user)return {bookings:[],orders:[]};const [bs,os]=await Promise.all([getDocs(query(collection(requireDb(),'bookings'),where('userId','==',user.uid))),getDocs(query(collection(requireDb(),'orders'),where('userId','==',user.uid)))]);return {bookings:bs.docs.map(x=>({id:x.id,...x.data()} as Booking)),orders:os.docs.map(x=>({id:x.id,...x.data()} as Order))}}
 export function subscribeAdminBookings(onChange:(bookings:Booking[])=>void):Unsubscribe{return onSnapshot(collection(requireAdminDb(),'bookings'),ss=>onChange(ss.docs.map(row=>({id:row.id,...row.data()} as Booking))),e=>console.error('Booking subscription',e))}
 export function subscribeAdminOrders(onChange:(orders:Order[])=>void):Unsubscribe{return onSnapshot(collection(requireAdminDb(),'orders'),ss=>onChange(ss.docs.map(row=>({id:row.id,...row.data()} as Order))),e=>console.error('Order subscription',e))}

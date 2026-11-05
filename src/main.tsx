@@ -8,6 +8,7 @@ import App from './App';
 import './styles.css';
 import './premium-theme.css';
 import './ambient-background.css';
+import './release-ui-fixes.css';
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

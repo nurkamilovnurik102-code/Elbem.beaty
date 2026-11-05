@@ -6,7 +6,12 @@ import {MediaImage} from '../media';
 import {money} from '../data';
 
 export function LanguageSelector({active,onSelect}:{active:string;onSelect:(language:'ky'|'ru'|'en')=>void}){
-  return <div className="language-choice" aria-label="Язык интерфейса">{(['ky','ru','en'] as const).map(code=><button type="button" key={code} className={active===code?'selected':''} aria-pressed={active===code} onClick={()=>onSelect(code)}>{code==='ky'?'KG':code.toUpperCase()}</button>)}</div>
+  return <div className="language-selector-responsive">
+    <div className="language-choice" aria-label="Язык интерфейса">{(['ky','ru','en'] as const).map(code=><button type="button" key={code} className={active===code?'selected':''} aria-pressed={active===code} onClick={()=>onSelect(code)}>{code==='ky'?'KG':code.toUpperCase()}</button>)}</div>
+    <select className="mobile-language-select" aria-label="Выбрать язык сайта" value={active} onChange={event=>onSelect(event.target.value as 'ky'|'ru'|'en')}>
+      <option value="ky">KG</option><option value="ru">RU</option><option value="en">EN</option>
+    </select>
+  </div>
 }
 export function RatingStars({rating}:{rating?:number}){
   const score=Math.max(1,Math.min(5,Math.round(Number(rating)||5)));

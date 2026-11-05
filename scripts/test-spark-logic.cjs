@@ -8,7 +8,7 @@ const path=require('node:path');
 let ts;try{ts=require('typescript')}catch{ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript')}
 const data=new Map();
 const auth={currentUser:{uid:'client1'}};
-const adminAuth={currentUser:{uid:'owner'}};
+const adminAuth={currentUser:{uid:'owner',email:'owner@example.com'}};
 const fakeDb={};
 let admin=false;
 function snapshot(ref){const val=data.get(ref.path);return {id:ref.id,exists:()=>val!==undefined,data:()=>val};}
@@ -37,9 +37,9 @@ const fb={
 };
 function loadTS(relative,customRequire){
  const code=fs.readFileSync(path.join(__dirname,'..',relative),'utf8');
- const compiled=ts.transpileModule(code,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+ const compiled=ts.transpileModule(code,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText.replaceAll('import.meta.env', '__testViteEnv');
  const module={exports:{}};
- new Function('require','module','exports','crypto',compiled)((name)=>customRequire(name),module,module.exports,globalThis.crypto||require('node:crypto').webcrypto);
+ new Function('require','module','exports','crypto','__testViteEnv',compiled)((name)=>customRequire(name),module,module.exports,globalThis.crypto||require('node:crypto').webcrypto,{VITE_ADMIN_LOGIN_EMAIL:'owner@example.com'});
  return module.exports;
 }
 const domain=loadTS('src/data.ts',()=>{throw Error('unexpected import')});
