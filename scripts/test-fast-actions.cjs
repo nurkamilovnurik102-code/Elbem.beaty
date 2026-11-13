@@ -13,12 +13,14 @@ test('booking gives immediate pending notice and success only after createBookin
  assert.match(f,/setMyBookings\(old=>/);
  assert.match(f,/finally\{setBookingBusy\(false\)\}/);
 });
-test('order does not auto-open empty chat; confirms after Firestore write',()=>{
- const f=app.slice(app.indexOf('const submitOrder=async('),app.indexOf('const login=async()=>'));
- assert.doesNotMatch(f,/window\.open\('about:blank'/);
- assert.ok(f.indexOf('const saved=await makeOrder(order)')<f.indexOf('setOrderSuccess(saved)'));
- assert.match(f,/notify\(t\('Отправляем заказ…'\),'pending'\)/);
- assert.match(app,/Перейти в мои записи/);
+test('shop checkout opens prepared WhatsApp message without Firestore order write',()=>{
+ const f=app.slice(app.indexOf('const submitOrder=()=>'),app.indexOf('const googleLogin=async()=>'));
+ assert.match(f,/https:\/\/wa\.me\/\$\{number\}/);
+ assert.match(f,/pickedProducts\.map/);
+ assert.match(f,/validatePhone\(orderPhoneCountry,orderPhone\)/);
+ assert.doesNotMatch(f,/makeOrder\(|setOrderSuccess\(|setDoc\(/);
+ assert.doesNotMatch(app,/adminPage==='Заказы'\?/);
+ assert.match(app,/Заказать через WhatsApp/);
 });
 test('content saving is atomic from the users perspective; never claims success before backend',()=>{
  const f=app.slice(app.indexOf('const saveContent=async()=>'),app.indexOf('const addBlock=async()=>'));
@@ -35,11 +37,12 @@ test('music visibility auto-saves separately and icon is removed when off',()=>{
 });
 test('live volume updates player and auto-saves with short debounce',()=>{
  assert.match(app,/audio\.current\.volume=musicVolume\/100/);
- assert.match(app,/\},240\);return\(\)=>window\.clearTimeout\(timer\)/);
+ assert.match(app,/void commitMusicVolume\(volume\)\},420\)/);
+ assert.match(app,/onPointerUp=\{e=>void commitMusicVolume/);
  assert.match(app,/musicVolume:volume/);
 });
 test('admin password uses Firebase reauthentication, customer login is separate',()=>{
- assert.match(app,/await signInWithEmailAndPassword\(auth,ownerClientEmail\.trim\(\),ownerClientPass\)/);
+ assert.doesNotMatch(app,/adminClientLogin/);
  assert.match(app,/await signInWithEmailAndPassword\(ownerFirebaseAuth,ownerEmail,adminPass\)/);
  assert.match(app,/await reauthenticateWithCredential\(user,credential\)/);
  assert.match(app,/await updatePassword\(user,newAdminPassword\)/);

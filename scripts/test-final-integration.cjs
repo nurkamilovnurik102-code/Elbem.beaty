@@ -29,7 +29,7 @@ test('customer registration remains on customer auth, admin session isolated',()
  assert.match(app,/signInWithEmailAndPassword\(ownerFirebaseAuth,ownerEmail,adminPass\)/);
  assert.match(firebase,/initializeApp\(config,'elbem-admin'\)/);
  assert.match(store,/adminDb/);
- assert.match(store,/token\.claims\.admin===true/);
+ assert.match(store,/token\.claims\.admin\s*===\s*true/);
 });
 test('sign out and booking success visible to clients',()=>{
  assert.match(app,/className="header-logout"/);

@@ -9,9 +9,9 @@ const main = read('src/main.tsx');
 const aura = read('src/ambient-background.css');
 const app = read('src/App.tsx');
 
-test('three predictable stylesheet layers only', () => {
+test('six predictable stylesheet layers including booking/mobile and live sync fixes', () => {
   const imports = [...main.matchAll(/import\s+['"]\.\/([^'"]+\.css)['"]/g)].map(x => x[1]);
-  assert.deepEqual(imports, ['styles.css', 'premium-theme.css', 'ambient-background.css']);
+  assert.deepEqual(imports, ['styles.css', 'premium-theme.css', 'ambient-background.css','release-ui-fixes.css','release-booking-fixes.css','release-live-sync-fixes.css']);
 });
 test('public aura does not cover user controls or affect admin layout', () => {
   assert.match(aura, /\.premium-public::before/);

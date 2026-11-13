@@ -89,3 +89,37 @@ test('prevents second review by the same client',async()=>{
  await store.submitReview('Client','Очень понравился сервис!',5);
  await assert.rejects(()=>store.submitReview('Client','Повторяю отзыв еще раз',5),/уже оставляли/i);
 });
+
+test('one or two services fit the 210-minute policy and book atomically',async()=>{
+ const one=await store.createBooking({...bk('09:00'),masterId:'m2',serviceIds:['s3']});
+ assert.equal(one.masterId,'m2');
+ const two=await store.createBooking({...bk('12:00'),masterId:'m2',serviceIds:['s3','s5']});
+ assert.equal(two.masterId,'m2');
+ const booked=[...data.values()].find(v=>v.id===two.id);
+ assert.equal(booked.duration,180);
+ assert.equal(booked.lockKeys.length,6);
+ await assert.rejects(()=>store.createBooking({...bk('16:00'),masterId:'m2',serviceIds:['s3','s5','s6']}),/одну или две/i);
+ await assert.rejects(()=>store.createBooking({...bk('16:00'),masterId:'any',serviceIds:['s2','s5']}),/210/i);
+});
+
+test('admin blocked time and whole-day closure disappear from available slots',async()=>{
+ const day=tomorrow();
+ const common=await store.availableSlots(day,['s1'],'m1');
+ assert.ok(common.includes('10:00'));
+ data.set('blockedSlots/m1|'+day+'|10:00',{slot:'m1|'+day+'|10:00'});
+ assert.equal((await store.availableSlots(day,['s1'],'m1')).includes('10:00'),false);
+ data.set('blockedSlots/'+day+'|*',{slot:day+'|*'});
+ assert.deepEqual(await store.availableSlots(day,['s1'],'m1'),[]);
+ await assert.rejects(()=>store.createBooking(bk('12:00')),/занят|закрыт/i);
+});
+
+test('weekly work schedule controls availability',async()=>{
+ const date=tomorrow();
+ const weekday=new Date(date+'T00:00:00Z').getUTCDay();
+ data.set('masterHours/m1_'+weekday,{master_id:'m1',weekday,open_at:'12:00',close_at:'15:00',is_open:true});
+ const slots=await store.availableSlots(date,['s1'],'m1');
+ assert.ok(slots.includes('12:00'));
+ assert.equal(slots.includes('10:00'),false);
+ data.set('masterHours/m1_'+weekday,{master_id:'m1',weekday,open_at:'12:00',close_at:'15:00',is_open:false});
+ await assert.rejects(()=>store.availableSlots(date,['s1'],'m1'),/мастер/i);
+});

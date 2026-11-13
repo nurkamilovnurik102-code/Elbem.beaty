@@ -4,10 +4,10 @@ const fs=require('node:fs');
 const read=f=>fs.readFileSync(new URL('../'+f,'file://'+__filename).pathname,'utf8');
 const app=read('src/App.tsx'),store=read('src/store.ts'),rules=read('firestore.rules');
 test('client and admin have independent Firebase Auth sessions',()=>{
- assert.match(app,/await signInWithEmailAndPassword\(auth,ownerClientEmail\.trim\(\),ownerClientPass\)/);
+ assert.match(app,/await signInWithEmailAndPassword\(auth,authEmail/);
  assert.match(app,/await signInWithEmailAndPassword\(ownerFirebaseAuth,ownerEmail,adminPass\)/);
  assert.match(read('src/firebase.ts'),/initializeApp\(config,'elbem-admin'\)/);
- assert.match(app,/admin\?\(adminAuth&&authUser\?Admin\(\):AdminGate\(\)\)/);
+ assert.match(app,/admin\?\(adminAuth\?Admin\(\):AdminGate\(\)\)/);
 });
 test('each client sees their own bookings and orders, admin write protected by claims',()=>{
  assert.match(store,/where\('userId','==',user\.uid\)/);

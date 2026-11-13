@@ -42,8 +42,9 @@ export async function readLive(includePrivate=false):Promise<State>{
     getDoc(doc(includePrivate?requireAdminDb():requireDb(),'siteContent','main')),
   ]);
   if(!includePrivate)return {content:content.exists()?content.data() as Content:defaults,categories:cs,services:ss,masters:ms,products:ps,reviews:rs.filter(r=>r.approved===true),bookings:[],orders:[],blocked:[]};
-  const [bookings,orders,blocks]=await Promise.all([docs<Booking>('bookings',true),docs<Order>('orders',true),docs<{slot:string}>('blockedSlots',true)]);
-  return {content:content.exists()?content.data() as Content:defaults,categories:cs,services:ss,masters:ms,products:ps,reviews:rs,bookings,orders,blocked:blocks.map(b=>b.slot)};
+  const [bookings,blocks]=await Promise.all([docs<Booking>('bookings',true),docs<{slot:string}>('blockedSlots',true)]);
+  // Historic Firestore orders are kept, but storefront orders now go to WhatsApp only.
+  return {content:content.exists()?content.data() as Content:defaults,categories:cs,services:ss,masters:ms,products:ps,reviews:rs,bookings,orders:[],blocked:blocks.map(b=>b.slot)};
 }
 export async function saveEntity(table:string,value:object){
   const v=value as Record<string,unknown>;
@@ -69,13 +70,13 @@ function checkDate(date:string){
 }
 async function bookingContext(date:string,serviceIds:string[],masterId:string){
   checkDate(date);
-  if(!Array.isArray(serviceIds)||serviceIds.length<1||serviceIds.length>8||new Set(serviceIds).size!==serviceIds.length)throw Error('Выберите услуги');
+  if(!Array.isArray(serviceIds)||serviceIds.length<1||serviceIds.length>2||new Set(serviceIds).size!==serviceIds.length)throw Error('Выберите одну или две услуги');
   const [selected,allMasters,hours,blocked,locks]=await Promise.all([
     Promise.all(serviceIds.map(id=>getDoc(doc(requireDb(),'services',id)))),
     docs<Master>('masters'),docs<MasterHour>('masterHours'),docs<{slot:string}>('blockedSlots'),
     getDocs(query(collection(requireDb(),'reservationLocks'),where('date','==',date)))
   ]);
-  if(selected.some(s=>!s.exists()||s.data()?.active===false))throw Error('Одна из услуг недоступна');
+  if(selected.some(s=>!s.exists()||s.data()?.active===false))throw Error('Услуга отсутствует в Firestore или отключена. Администратору нужно проверить каталог.');
   const chosen=selected.map(s=>s.data() as Service);
   const rawDuration=chosen.reduce((n,s)=>n+Number(s.duration),0);
   const price=chosen.reduce((n,s)=>n+Number(s.price),0);
@@ -92,13 +93,14 @@ function spansAreOpen(date:string,startMinute:number,ctx:Awaited<ReturnType<type
   if(startMinute<timeMinutes(master.working.open_at)||startMinute+ctx.duration>timeMinutes(master.working.close_at))return false;
   for(let minute=startMinute;minute<startMinute+ctx.duration;minute+=STEP){
     const time=minutesTime(minute);
-    if(ctx.blocked.has(`${date}|${time}`)||ctx.blocked.has(`${master.id}|${date}|${time}`)||ctx.locked.has(slotKey(master.id,date,minute)))return false;
+    if(ctx.blocked.has(`${date}|*`)||ctx.blocked.has(`${master.id}|${date}|*`)||ctx.blocked.has(`${date}|${time}`)||ctx.blocked.has(`${master.id}|${date}|${time}`)||ctx.locked.has(slotKey(master.id,date,minute)))return false;
   }
   return true;
 }
 export async function availableSlots(date:string,serviceIds:string[],masterId:string):Promise<string[]>{
   if(!serviceIds.length)return [];
   const ctx=await bookingContext(date,serviceIds,masterId);
+  if(!ctx.candidates.length)throw Error('Для выбранных услуг не найден свободный мастер. Выберите другого специалиста или услугу.');
   const slots:string[]=[];
   for(let m=9*60;m<21*60;m+=STEP){
     const time=minutesTime(m);
@@ -127,9 +129,15 @@ export async function createBooking(input:Booking):Promise<{id:string;masterId:s
       createdAt:new Date().toISOString(),note:clean(input.note||'',1000),userId:user.uid};
     try{
       await runTransaction(requireDb(),async tx=>{
-        const snapshots=[];
-        for(const ref of refs)snapshots.push(await tx.get(ref));
-        if(snapshots.some(s=>s.exists()))throw new SlotBusy('Интервал занят');
+        // Check both occupancy and newly blocked admin dates/times inside the transaction.
+        const dbRef=requireDb();
+        const blockKeys=[`${input.date}|*`,`${master.id}|${input.date}|*`,...Array.from({length:ctx.duration/STEP},(_,i)=>{
+          const at=minutesTime(minute+i*STEP);
+          return [`${input.date}|${at}`,`${master.id}|${input.date}|${at}`];
+        }).flat()];
+        const blockedRefs=blockKeys.map(key=>doc(dbRef,'blockedSlots',key));
+        const snapshots=await Promise.all([...refs,...blockedRefs].map(ref=>tx.get(ref)));
+        if(snapshots.some(s=>s.exists()))throw new SlotBusy('Интервал занят или закрыт администратором');
         tx.set(bookingRef,payload);
         refs.forEach((ref,i)=>tx.set(ref,{bookingId:bookingRef.id,userId:user.uid,masterId:master.id,date:input.date,minute:minute+i*STEP}));
       });
@@ -198,6 +206,12 @@ export async function checkAdmin(forceRefresh = false) {
     Boolean(adminEmail) &&
     user.email?.toLowerCase() === adminEmail
   );
+}
+export async function getMyBookings():Promise<Booking[]>{
+  const user=auth?.currentUser;
+  if(!user)return [];
+  const snapshot=await getDocs(query(collection(requireDb(),'bookings'),where('userId','==',user.uid)));
+  return snapshot.docs.map(row=>({id:row.id,...row.data()} as Booking));
 }
 export async function getMyData():Promise<{bookings:Booking[];orders:Order[]}>{const user=auth?.currentUser;if(!user)return {bookings:[],orders:[]};const [bs,os]=await Promise.all([getDocs(query(collection(requireDb(),'bookings'),where('userId','==',user.uid))),getDocs(query(collection(requireDb(),'orders'),where('userId','==',user.uid)))]);return {bookings:bs.docs.map(x=>({id:x.id,...x.data()} as Booking)),orders:os.docs.map(x=>({id:x.id,...x.data()} as Order))}}
 export function subscribeAdminBookings(onChange:(bookings:Booking[])=>void):Unsubscribe{return onSnapshot(collection(requireAdminDb(),'bookings'),ss=>onChange(ss.docs.map(row=>({id:row.id,...row.data()} as Booking))),e=>console.error('Booking subscription',e))}

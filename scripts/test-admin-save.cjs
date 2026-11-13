@@ -9,7 +9,7 @@ test('settings save does not report success without Firebase', () => {
   const handler = app.slice(app.indexOf(' const saveContent=async()=>'),app.indexOf(' const addBlock=async()=>'));
   assert.match(handler,/if\(!configured\)throw Error/);
   assert.match(handler,/if\(!await checkAdmin\(\)\)throw Error/);
-  assert.match(handler,/await saveEntity\('site_content',\{id:'main',data:content\}\)/);
+  assert.match(handler,/await saveEntity\('site_content',\{id:'main',data:\{\.\.\.content,musicVolume:volumeRef\.current\}\}\)/);
   assert.ok(handler.indexOf("await saveEntity('site_content'") < handler.indexOf('setContentSaveFeedback({error:false,message})'));
 });
 

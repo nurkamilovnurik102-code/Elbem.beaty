@@ -1,0 +1,109 @@
+/* EL BEM | Live booking, cohesive controls and dark-theme contrast. No data changes. */
+:root {
+  --elbem-control: #fbf5f3;
+  --elbem-control-text: #622c45;
+  --elbem-control-border: rgba(128, 72, 94, .25);
+  --elbem-panel-text: #422c39;
+}
+:root[data-theme="dark"] {
+  --elbem-control: #503545;
+  --elbem-control-text: #fff0ea;
+  --elbem-control-border: rgba(242, 205, 181, .3);
+  --elbem-panel-text: #fff0ea;
+  color-scheme: dark;
+}
+:root[data-theme="light"] { color-scheme: light; }
+/* Matching clickable controls on cart, schedule, and product panels. */
+.premium-public .cart-row {min-width:0; border-bottom:1px solid var(--elbem-control-border);}
+.premium-public .cart-row > div:nth-child(2) { min-width:0; overflow-wrap:anywhere; }
+.premium-public .cart-row .qty { gap:8px; flex-shrink:0; font-weight:700; }
+.premium-public .cart-row button,
+.premium-public .cart-row .qty button {
+  display:inline-flex; align-items:center; justify-content:center;
+  min-height:40px; min-width:40px; padding:8px; border-radius:12px;
+  border:1px solid var(--elbem-control-border);
+  background:var(--elbem-control);color:var(--elbem-control-text);
+  box-shadow:0 3px 9px rgba(43,17,29,.09),inset 0 1px 0 rgba(255,255,255,.16);
+  transition:transform .17s, background-color .17s, box-shadow .17s;
+}
+.premium-public .cart-row button:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 5px 13px rgba(43,17,29,.17); }
+.premium-public .cart-row button:active:not(:disabled) { transform:scale(.96);box-shadow:inset 0 2px 5px rgba(18,5,10,.2); }
+.premium-public .checkout { min-width:0; }
+.premium-public .checkout .btn { width:100%; min-height:50px; border-radius:15px; }
+.premium-public .booking-step .master-options button,
+.premium-public .booking-step .time-grid button { border-radius:13px; min-height:43px; }
+/* Administrator controls share the same contrast as the public storefront. */
+.admin-shell .elbem-master-service-list { display:grid; grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:9px; margin-top:5px; }
+.admin-shell .elbem-master-service-choice { display:flex;gap:9px;align-items:center;min-width:0;padding:10px 12px;border-radius:13px;background:var(--elbem-control);border:1px solid var(--elbem-control-border);color:var(--elbem-control-text);font-weight:600;cursor:pointer; }
+.admin-shell .elbem-master-service-choice input {width:18px;height:18px;accent-color:#9b5876;flex:0 0 auto;}
+.admin-shell .elbem-master-service-choice span {min-width:0;overflow-wrap:anywhere;}
+.admin-shell .elbem-master-service-list small {grid-column:1/-1;}
+:root[data-theme="dark"] .admin-shell,
+:root[data-theme="dark"] .admin-content {background:#261d27;color:#f9e7e8;}
+:root[data-theme="dark"] .admin-shell .admin-panel,
+:root[data-theme="dark"] .admin-shell .stat,
+:root[data-theme="dark"] .admin-shell .password-box,
+:root[data-theme="dark"] .admin-shell .admin-actions,
+:root[data-theme="dark"] .admin-shell .modal,
+:root[data-theme="dark"] .admin-shell .table-scroll {color:#f8eaf0;}
+:root[data-theme="dark"] .admin-shell .admin-panel .hint,
+:root[data-theme="dark"] .admin-shell .admin-panel p,
+:root[data-theme="dark"] .admin-shell .admin-panel label,
+:root[data-theme="dark"] .admin-shell .admin-fields .field,
+:root[data-theme="dark"] .admin-shell .stat span {color:#ead6e0;}
+:root[data-theme="dark"] .admin-shell .field input,
+:root[data-theme="dark"] .admin-shell .field textarea,
+:root[data-theme="dark"] .admin-shell .field select,
+:root[data-theme="dark"] .admin-shell input:not([type="checkbox"]):not([type="range"]),
+:root[data-theme="dark"] .admin-shell textarea,
+:root[data-theme="dark"] .admin-shell select,
+:root[data-theme="dark"] .admin-shell .form-grid input,
+:root[data-theme="dark"] .admin-shell .form-grid select {
+  background:#372733;color:#fae9ef;border-color:rgba(232,185,205,.32);
+  box-shadow:inset 0 2px 4px rgba(11,4,9,.18);
+}
+:root[data-theme="dark"] .admin-shell input::placeholder,
+:root[data-theme="dark"] .admin-shell textarea::placeholder {color:#c6aebe;opacity:1;}
+:root[data-theme="dark"] .admin-shell button:not(.btn-primary):not(.selected),
+:root[data-theme="dark"] .admin-shell .admin-actions button {border-color:rgba(236,193,209,.28);}
+:root[data-theme="dark"] .admin-shell .admin-actions button,
+:root[data-theme="dark"] .admin-shell .mini-btn,
+:root[data-theme="dark"] .admin-shell .form-grid button:not(.btn-primary) {background:#523545;color:#f9e6e8;}
+:root[data-theme="dark"] .admin-shell table th,
+:root[data-theme="dark"] .admin-shell table td {color:#f5e6e9;border-color:rgba(247,205,225,.2);}
+:root[data-theme="dark"] .admin-shell .status-pill {background:#573848;color:#ffe9e5;}
+:root[data-theme="dark"] .premium-public .cart-row,
+:root[data-theme="dark"] .premium-public .cart-row p,
+:root[data-theme="dark"] .premium-public .cart-row b {color:#fff0eb;}
+:root[data-theme="dark"] .premium-public .cart-row button,
+:root[data-theme="dark"] .premium-public .cart-row .qty button {background:linear-gradient(145deg,#684259,#492d40);color:#fff0ea;border-color:rgba(255,221,190,.32);}
+:root[data-theme="dark"] .premium-public .checkout .field,
+:root[data-theme="dark"] .premium-public .booking-step .hint,
+:root[data-theme="dark"] .premium-public .booking-step p,
+:root[data-theme="dark"] .premium-public .booking-summary small {color:#ead5df;}
+:root[data-theme="dark"] .premium-public .master-options button:not(.selected),
+:root[data-theme="dark"] .premium-public .time-grid button:not(:disabled):not(.selected) {
+  color:#ffeae9; background:#4b3443;border:1px solid rgba(233,185,204,.32);
+}
+:root[data-theme="dark"] .premium-public .time-grid button:disabled {background:#322630!important;color:#c4acb9!important;border:1px dashed rgba(222,186,206,.24);opacity:.68;}
+@media(max-width:740px) {
+  .premium-public .cart-row {display:grid;grid-template-columns:70px minmax(0,1fr) auto;gap:10px;align-items:center;}
+  .premium-public .cart-row > img,.premium-public .cart-row > .media-image {max-width:70px;}
+  .premium-public .cart-row .qty {grid-column:2;justify-self:start;}
+  .premium-public .cart-row > button:last-child {grid-column:3;justify-self:end;}
+  .premium-public .cart-row button {min-width:38px;min-height:38px;}
+  .admin-shell .elbem-master-service-list {grid-template-columns:minmax(0,1fr);}
+}
+@media(prefers-reduced-motion:reduce){.premium-public .cart-row button{transition:none!important;}}
+/* Weekly working-hours box is separate from .admin-panel and needs its own palette. */
+:root[data-theme="dark"] .admin-shell .schedule-weekly,
+:root[data-theme="dark"] .admin-shell .password-box {
+  background:linear-gradient(150deg,#3c2b39,#322631)!important;
+  color:#f4e3e8!important;
+  border:1px solid rgba(239,190,210,.24)!important;
+}
+:root[data-theme="dark"] .admin-shell .schedule-weekly h4,
+:root[data-theme="dark"] .admin-shell .password-box h4 { color:#f8d9bb!important; }
+:root[data-theme="dark"] .admin-shell .switch-row {color:#f1dbe5;}
+:root[data-theme="dark"] .admin-shell input[type="range"] {accent-color:#c98cab;}
+:root[data-theme="dark"] .premium-public .checkout-contact-note {color:#ebd2dd;}

@@ -12,7 +12,7 @@ const store=load('src/store.ts');
 test('admin password is checked with the entered owner email and explicit custom claim',()=>{
  assert.match(app,/signInWithEmailAndPassword\(ownerFirebaseAuth,ownerEmail,adminPass\)/);
  assert.ok(!app.includes('signInWithEmailAndPassword(ownerFirebaseAuth,sharedAdminEmail,adminPass)'));
- assert.match(store,/token\.claims\.admin===true/);
+ assert.match(store,/token\.claims\.admin\s*===\s*true/);
 });
 test('Spark client only needs actual used Firebase properties, not Storage bucket',()=>{
  assert.match(firebase,/config\.apiKey && config\.authDomain && config\.projectId && config\.appId/);

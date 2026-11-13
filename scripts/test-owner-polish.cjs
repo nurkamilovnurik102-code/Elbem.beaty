@@ -4,12 +4,12 @@ const fs=require('node:fs');
 const path=require('node:path');
 const read=p=>fs.readFileSync(path.join(__dirname,'..',p),'utf8');
 const app=read('src/App.tsx'),store=read('src/store.ts'),css=read('src/premium-theme.css'),shared=read('src/components/Shared.tsx');
-test('owner gate has distinct customer credentials and protected admin session',()=>{
- assert.match(app,/const adminClientLogin=async\(\)=>/);
- assert.match(app,/await signInWithEmailAndPassword\(auth,ownerClientEmail\.trim\(\),ownerClientPass\)/);
+test('owner gate is a single authorized Firebase account independent of customer login',()=>{
+ assert.doesNotMatch(app,/adminClientLogin/);
+ assert.doesNotMatch(app,/ownerClientPass/);
  assert.match(app,/await signInWithEmailAndPassword\(ownerFirebaseAuth,ownerEmail,adminPass\)/);
- assert.match(app,/admin\?\(adminAuth&&authUser\?Admin\(\):AdminGate\(\)\)/);
- assert.match(store,/token\.claims\.admin===true/);
+ assert.match(app,/admin\?\(adminAuth\?Admin\(\):AdminGate\(\)\)/);
+ assert.match(store,/token\.claims\.admin\s*===\s*true/);
  assert.doesNotMatch(app,/setCustomUserClaims|adminPass\s*===\s*['"`]/);
 });
 test('volume slider queues automatic Firestore updates to siteContent without altering another media setting',()=>{
@@ -26,11 +26,12 @@ test('public booking requires an explicitly selected server time and stale slots
  assert.match(store,/createBooking\(input:Booking\)/);
  assert.match(store,/runTransaction\(requireDb\(\),async tx=>/);
 });
-test('success screens for bookings and orders have real navigation',()=>{
+test('booking success navigates to account while shop checkout uses WhatsApp only',()=>{
  assert.match(app,/t\('Перейти в мои записи'\)/);
- assert.match(app,/setOrderSuccess\(saved\)/);
- assert.match(app,/t\('Заказ успешно отправлен'\)/);
- assert.match(app,/onClick=>go\('Кабинет'\)/.source? /onClick=\{\(\)=>go\('Кабинет'\)\}/ : /doesnotexist/);
+ assert.match(app,/setSubmitted\(b\)/);
+ assert.match(app,/onClick=\{\(\)=>go\('Кабинет'\)\}/);
+ assert.match(app,/t\('Заказать через WhatsApp'\)/);
+ assert.doesNotMatch(app,/setOrderSuccess\(saved\)/);
 });
 test('admin uses the single locale chosen on the public website without its own language toggle',()=>{
  assert.match(app,/const editLocale=locale;/);

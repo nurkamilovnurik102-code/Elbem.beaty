@@ -9,6 +9,8 @@ import './styles.css';
 import './premium-theme.css';
 import './ambient-background.css';
 import './release-ui-fixes.css';
+import './release-booking-fixes.css';
+import './release-live-sync-fixes.css';
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
